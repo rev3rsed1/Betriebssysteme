@@ -6,13 +6,19 @@
 #include <string.h>
 #include <sys/wait.h>
 
-void parse(char *in, char **out) {
+int parse(char *in, char **out) {
 
     char *word;
     int pos = 0;
+    int isBackground = 0;
 
     word = strtok(in, " \n\t\r");
     while(word != NULL) {
+        if(!strcmp(word, "&")){
+            isBackground = 1;
+            break;
+        }
+
         out[pos] = word;
         pos++;
 
@@ -20,12 +26,15 @@ void parse(char *in, char **out) {
     }
     
     out[pos] = NULL;
+    return isBackground;
+
 }
 
 int main() {
 
     char *input;
     char **args = malloc(sizeof(char*) * 64);
+    int isBackground = 0;
 
     while(1) {
         printf(">>> ");
@@ -33,8 +42,8 @@ int main() {
         ssize_t buffer = 0;
         getline(&input, &buffer, stdin);
 
-        parse(input, args);
-        //printf("%i", strcmp(args[0],"logout"));
+        isBackground = parse(input, args);
+        
         if(!strcmp(args[0], "logout")) return 0;
 
         pid_t pid;
@@ -48,14 +57,16 @@ int main() {
             }
             return 0;
         }
+        else if (isBackground) {
+            printf("[%i]\n", pid);
+            sleep(1);
+        }
         else {
-            //while(!WIFEXITED(status) && !WIFSIGNALED(status)) {
-              //  waitpid(pid, &status, WUNTRACED | WCONTINUED);
-            //}
-            wait(&status);
+            waitpid(pid,&status, WUNTRACED);
         }
 
         input = NULL;
+        isBackground = 0;
         //args = NULL;
     }
 
