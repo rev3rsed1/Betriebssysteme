@@ -23,9 +23,9 @@ void function() {
 
 int main() {
 
-    printf("%10s: %p \n","main", &main);
+    printf("%10s: %p \n","main", main);
 
-    printf("%10s: %p \n\n","function", &function);
+    printf("%10s: %p \n\n","function", function);
 
     printf("%10s: a=%p, b=%p, c=%p \n", "globals:", &a, &b, &c);
 
@@ -44,6 +44,7 @@ int main() {
     free(m_f);
 
     function();
+  
 
     struct rlimit limit;
     getrlimit(RLIMIT_STACK, &limit);
