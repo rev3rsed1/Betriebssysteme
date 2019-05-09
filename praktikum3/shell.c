@@ -6,8 +6,11 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <termios.h>
 
 pid_t childpid;
+int status;
+struct termios tcattr;
 
 int parse(char *in, char **out) {
 
@@ -48,7 +51,21 @@ void sigint_handler() {
 void sigtstp_handler() {
     if (childpid) {
         printf("Stopping PID: %i\n", childpid);
+
+        tcgetattr(STDOUT_FILENO, &tcattr);
         kill(childpid, SIGTSTP);
+    }
+}
+
+void sigchld_handler() {
+    printf("Caught SIGCHLD PID: %i\n", childpid);
+
+    pid_t wpid;
+    int status;
+
+    while (!WIFEXITED(status)) {
+        wpid = waitpid(childpid, &status, WNOHANG);
+        //if (wpid <= 0) return; 
     }
 }
 
@@ -68,22 +85,36 @@ int main() {
         
         if (!strcmp(args[0], "logout")) break;
 
-        /*if (!strcmp(args[0], "fg")) {
+        if (!strcmp(args[0], "fg")) {
+            printf("Resuming PID to fg: %i\n", childpid); 
             kill(childpid, SIGCONT);
-            
-        }*/
+
+            waitpid(childpid, &status, WUNTRACED);
+
+            //tcsetattr(STDOUT_FILENO, TCSADRAIN, &tcattr);
+
+            continue;
+        }
+
+        if (!strcmp(args[0], "bg")) {
+            printf("Resuming PID to bg: %i\n", childpid);
+            kill(childpid, SIGCONT);
+
+            continue;
+        }
 
         pid_t pid, wpid;
-        int status = 0;
+        int status;
 
         signal(SIGINT, sigint_handler);
         signal(SIGTSTP, sigtstp_handler);
+        signal(SIGCHLD, sigchld_handler);
 
         pid = fork();
         childpid = pid;
 
         if (pid == 0) {
-            //sleep(1);
+            sleep(1);
             printf("child group: %d\n", (int) getpgrp());
 
             if(execvp(args[0], args) == -1) {
@@ -93,20 +124,21 @@ int main() {
         }
 
         else if (isBackground) {
-            printf("[%i]\n", pid);
-            sleep(1);
+            if (setpgid(pid, pid) != 0) {
+                perror("setpgid() error");
+            }
+
+            printf("[%i]\n", getpgrp());
+            //sleep(1);
         }
 
         else {
 
-            if (setpgid(pid, pid) != 0) {
-                perror("setpgid() error");
-            }
             printf("parent group: %d\n", (int) getpgrp());
 
             wpid = waitpid(pid, &status, WUNTRACED);
 
-            childpid = 0;
+            //childpid = 0;
         }
 
         input = NULL;
