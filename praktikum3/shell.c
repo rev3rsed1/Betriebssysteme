@@ -38,7 +38,7 @@ int parse(char *in, char **out) {
 }
 
 void sigint_handler() {
-    if (!childpid && childpid != getpgrp()) {
+    if (childpid && childpid == getpgrp()) {
         printf("Killing child PID: %i, Parentgid:%i\n", childpid, parentpgid);
         kill(childpid, SIGINT);
         childpid = 0;
@@ -50,7 +50,7 @@ void sigint_handler() {
 }
 
 void sigtstp_handler() {
-    if (childpid && getpgrp() == parentpgid) {
+    if (childpid && getpgrp() == childpid) {
         printf("Stopping PID: %i\n", childpid);
 
         tcgetattr(STDOUT_FILENO, &tcattr);
@@ -68,7 +68,7 @@ void sigchld_handler() {
     int status;
  
     if (getpgrp() == parentpgid) {
-        printf("WIFEXITED: %i", WIFEXITED(status));
+        //printf("WIFEXITED: %i", WIFEXITED(status));
 
         //while (!WIFEXITED(status)) {
         //    printf("waiting..\n");
@@ -111,6 +111,10 @@ int main() {
             printf("Resuming PID to bg: %i\n", childpid);
             kill(childpid, SIGCONT);
 
+            if (setpgid(childpid, childpid) != 0) {
+                perror("setpgid error");
+            }
+
             continue;
         }
 
@@ -129,7 +133,7 @@ int main() {
             sleep(1);
             printf("child group: %d\n", (int) getpgrp());
 
-            childcount++;
+            //childcount++;
 
             if(execvp(args[0], args) == -1) {
                 perror("Execute error");
@@ -139,6 +143,7 @@ int main() {
 
         else if (isBackground) {
             childpid = pid;
+            childcount++;
 
             if (setpgid(pid, pid) != 0) {
                 perror("setpgid() error");
@@ -150,6 +155,7 @@ int main() {
 
         else {
             childpid = pid;
+            childcount++;
             
             printf("parent group: %d\n", (int)getpgrp());
 
