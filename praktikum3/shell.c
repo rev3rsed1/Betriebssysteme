@@ -6,12 +6,11 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <termios.h>
 
 pid_t childpid, parentpgid;
 int status;
 int childcount = 0;
-struct termios tcattr;
+
 
 int parse(char *in, char **out) {
 
@@ -44,8 +43,13 @@ void sigint_handler() {
         childpid = 0;
     }
     else if (!childcount) {
-        printf("\n");
-        exit(0);
+        char *input;
+        ssize_t buffer = 0;
+
+        printf("Sure? (y/n)");
+        getline(&input, &buffer, stdin);
+        if (input[0] == 'y') exit(0);
+        
     }
 }
 
@@ -53,7 +57,7 @@ void sigtstp_handler() {
     if (childpid && getpgrp() == childpid) {
         printf("Stopping PID: %i\n", childpid);
 
-        tcgetattr(STDOUT_FILENO, &tcattr);
+        //tcgetattr(STDOUT_FILENO, &tcattr);
         kill(childpid, SIGTSTP);
     }
     else if (!childcount) {
@@ -68,19 +72,18 @@ void sigchld_handler() {
     int status;
  
     if (getpgrp() == parentpgid) {
-        //printf("WIFEXITED: %i", WIFEXITED(status));
-
-        //while (!WIFEXITED(status)) {
-        //    printf("waiting..\n");
         wpid = waitpid(childpid, &status, WNOHANG);
-        //if (wpid <= 0) return; 
-        //}
+        
+        //printf("Status: %i\n",status);
 
-        childcount--;
+        if (wpid != 0) childcount--;
     }
 }
 
 int main() {
+    signal(SIGINT, sigint_handler);
+    signal(SIGTSTP, sigtstp_handler);
+    signal(SIGCHLD, sigchld_handler);
 
     char *input;
     char **args = malloc(sizeof(char*) * 64);
@@ -94,7 +97,23 @@ int main() {
 
         isBackground = parse(input, args);
         
-        if (!strcmp(args[0], "logout")) break;
+        if (!strcmp(args[0], "count")) {
+            printf("Count: %i\n", childcount);
+            continue;
+        }
+
+        if (!strcmp(args[0], "logout")) {
+            if (!childcount) {
+                printf("Sure? (y/n)");
+                getline(&input, &buffer, stdin);
+                if (input[0] == 'y') break;
+                else continue;
+            }
+            else if (childcount) {
+                printf("Childs left...\n");
+                continue;
+            }
+        }
 
         if (!strcmp(args[0], "fg")) {
             printf("Resuming PID to fg: %i\n", childpid); 
@@ -111,9 +130,11 @@ int main() {
             printf("Resuming PID to bg: %i\n", childpid);
             kill(childpid, SIGCONT);
 
-            if (setpgid(childpid, childpid) != 0) {
-                perror("setpgid error");
-            }
+            //if (setpgid(childpid, childpid) != 0) {
+              //  perror("setpgid error");
+            //}
+
+            childpid = 0;
 
             continue;
         }
@@ -121,9 +142,6 @@ int main() {
         pid_t pid, wpid;
         int status;
 
-        signal(SIGINT, sigint_handler);
-        signal(SIGTSTP, sigtstp_handler);
-        signal(SIGCHLD, sigchld_handler);
 
         pid = fork();
         //childpid = pid;
