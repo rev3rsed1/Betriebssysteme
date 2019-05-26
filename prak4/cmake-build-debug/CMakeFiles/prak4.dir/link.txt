@@ -1,0 +1,1 @@
+/usr/bin/c++  -pthread -g   CMakeFiles/prak4.dir/main.cpp.o  -o prak4 

@@ -1,0 +1,46 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/rene/CLionProjects/prak4/BunQueue.h
+queue
+-
+mutex
+-
+condition_variable
+-
+
+/home/rene/CLionProjects/prak4/ClientQueue.h
+queue
+-
+mutex
+-
+condition_variable
+-
+BunQueue.h
+/home/rene/CLionProjects/prak4/BunQueue.h
+
+/home/rene/CLionProjects/prak4/main.cpp
+iostream
+-
+thread
+-
+mutex
+-
+queue
+-
+condition_variable
+-
+sys/time.h
+-
+unistd.h
+-
+BunQueue.h
+/home/rene/CLionProjects/prak4/BunQueue.h
+ClientQueue.h
+/home/rene/CLionProjects/prak4/ClientQueue.h
+
