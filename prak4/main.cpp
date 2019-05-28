@@ -34,12 +34,14 @@ void sells(BunQueue& bq, ClientQueue& cq, int sellerId) {
         //std::condition_variable* cndPtr;
 
         bunNumber = cq.serveClient(sellerId, &clientId, &receivePtr);
-        printf("Received order of %i buns.\n", bunNumber);
 
-        bq.consumeBuns(bunNumber, receivePtr);
+        if (bunNumber > 0) {
+            printf("Received order of %i buns.\n", bunNumber);
+            bq.consumeBuns(bunNumber, receivePtr);
+            finished[clientId].notify_all();
+            printf("Completed order with %i buns.\n", *receivePtr);
+        }
 
-        finished[clientId].notify_all();
-        printf("Completed order with %i buns.\n", *receivePtr);
         pthread_yield();
     }
 
@@ -52,6 +54,8 @@ void buys(ClientQueue& cq, int clientId) {
     int* receivePtr = &receivedBuns;
 
     std::mutex mtx;
+
+    while (cq.length() >= maxQueueSize) usleep(500);
 
     printf("Client %i trying to buy %i buns.\n", clientId, bunNumber);
 

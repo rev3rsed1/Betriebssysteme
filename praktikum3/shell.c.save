@@ -7,7 +7,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-pid_t childpid, parentpgid, stoppedchild, childpgid;
+pid_t childpid, parentpgid, stoppedchild;
 int status;
 int childcount = 0;
 
@@ -38,7 +38,7 @@ int parse(char *in, char **out) {
 
 void sigint_handler() {
     printf("Caught SIGINT\n");
-    if (childpid != 0 && childpgid == getpgrp()) {
+    if (childpid != 0 && childpid == getpgrp()) {
         printf("Killing child PID: %i, Parentgid:%i\n", childpid, parentpgid);
         kill(childpid, SIGINT);
         //childpid = 0;
@@ -55,7 +55,7 @@ void sigint_handler() {
 }
 
 void sigtstp_handler() {
-    if (childpid && getpgrp() == childgpid) {
+    if (childpid && getpgrp() == childpid) {
         printf("Stopping PID: %i\n", childpid);
 
         //tcgetattr(STDOUT_FILENO, &tcattr);

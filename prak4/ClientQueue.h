@@ -42,11 +42,14 @@ public:
         cond.wait(lock, [this](){
             return queue.size() != 0 || finished;
         });
-        printf("Seller %i serving Client %i ...\n", sellerId, queue.front().clientId);
-        *receivePtr = queue.front().receivePtr;
-        *clientId = queue.front().clientId;
-        int receive = queue.front().bunNumber;
-        queue.pop();
+        int receive = 0;
+        if(!finished) {
+            printf("Seller %i serving Client %i ...\n", sellerId, queue.front().clientId);
+            *receivePtr = queue.front().receivePtr;
+            *clientId = queue.front().clientId;
+            receive = queue.front().bunNumber;
+            queue.pop();
+        }
         lock.unlock();
         cond.notify_all();
         return receive;
@@ -59,6 +62,7 @@ public:
     void clear() {
         std::unique_lock<std::mutex> lock(mutex);
         while(queue.size() > 0) queue.pop();
+        finished = true;
         lock.unlock();
         cond.notify_all();
     }
