@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/rene/CLionProjects/prak4/BunQueue.h
+/home/rw/BS/prak4/BunQueue.h
 queue
 -
 mutex
@@ -14,7 +14,7 @@ mutex
 condition_variable
 -
 
-/home/rene/CLionProjects/prak4/ClientQueue.h
+/home/rw/BS/prak4/ClientQueue.h
 queue
 -
 mutex
@@ -22,9 +22,9 @@ mutex
 condition_variable
 -
 BunQueue.h
-/home/rene/CLionProjects/prak4/BunQueue.h
+/home/rw/BS/prak4/BunQueue.h
 
-/home/rene/CLionProjects/prak4/main.cpp
+/home/rw/BS/prak4/main.cpp
 iostream
 -
 thread
@@ -40,7 +40,7 @@ sys/time.h
 unistd.h
 -
 BunQueue.h
-/home/rene/CLionProjects/prak4/BunQueue.h
+/home/rw/BS/prak4/BunQueue.h
 ClientQueue.h
-/home/rene/CLionProjects/prak4/ClientQueue.h
+/home/rw/BS/prak4/ClientQueue.h
 
